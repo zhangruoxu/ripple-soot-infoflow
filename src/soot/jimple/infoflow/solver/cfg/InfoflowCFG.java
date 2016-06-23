@@ -403,9 +403,9 @@ public class InfoflowCFG implements IInfoflowCFG {
 		return eug.getExceptionalSuccsOf(u1).contains(u2);
 	}
 
-	@Override
-	public boolean isReachable(Unit u) {
-		return delegate.isReachable(u);
-	}
+//	@Override
+//	public boolean isReachable(Unit u) {
+//		return delegate.isReachable(u);
+//	}
 	
 }
