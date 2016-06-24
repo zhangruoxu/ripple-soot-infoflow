@@ -282,6 +282,12 @@ public abstract class AbstractInfoflow implements IInfoflow {
 			logger.error("Only phantom classes loaded, skipping analysis...");
 			return;
 		}
+		
+		/**
+		 * @author yifei
+		 * configure inference reflection model of SOOT
+		 */
+		soot.jimple.toolkits.callgraph.reflection.android.Options.setInferenceReflectionModel(config.isInferenceReflectionModel());
 	}
 
 	private void setChaOptions() {

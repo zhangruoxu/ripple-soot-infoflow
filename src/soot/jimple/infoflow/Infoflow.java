@@ -11,6 +11,8 @@ package soot.jimple.infoflow;
 
 import heros.solver.CountingThreadPoolExecutor;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -51,6 +53,7 @@ import soot.jimple.infoflow.data.pathBuilders.IPathBuilderFactory;
 import soot.jimple.infoflow.entryPointCreators.IEntryPointCreator;
 import soot.jimple.infoflow.handlers.ResultsAvailableHandler;
 import soot.jimple.infoflow.handlers.TaintPropagationHandler;
+import soot.jimple.infoflow.option.Option;
 import soot.jimple.infoflow.problems.BackwardsInfoflowProblem;
 import soot.jimple.infoflow.problems.InfoflowProblem;
 import soot.jimple.infoflow.results.InfoflowResults;
@@ -65,6 +68,7 @@ import soot.jimple.infoflow.util.SootMethodRepresentationParser;
 import soot.jimple.infoflow.util.SystemClassHandler;
 import soot.jimple.toolkits.callgraph.ReachableMethods;
 import soot.options.Options;
+import soot.toolkits.scalar.Pair;
 /**
  * main infoflow class which triggers the analysis and offers method to customize it.
  *
@@ -85,6 +89,14 @@ public class Infoflow extends AbstractInfoflow {
     private Set<Stmt> collectedSources = null;
     private Set<Stmt> collectedSinks = null;
 
+    /**
+     * @author yifei
+     * get more detailed sources and sinks info
+     */
+    private Set<Pair<SootMethod, Stmt>> sources = new HashSet<>();
+    private Set<Pair<SootMethod, Stmt>> sinks = new HashSet<>();
+	// End of yifei modification
+    
 	/**
 	 * Creates a new instance of the InfoFlow class for analyzing plain Java code without any references to APKs or the Android SDK.
 	 */
@@ -222,9 +234,26 @@ public class Infoflow extends AbstractInfoflow {
 					+ " seconds");
         }
 
-        if (config.getCallgraphAlgorithm() != CallgraphAlgorithm.OnDemand)
+        /**
+         * @author yifei
+         * print the size of callgraph
+         */
+        if (config.getCallgraphAlgorithm() != CallgraphAlgorithm.OnDemand) {
         	logger.info("Callgraph has {} edges", Scene.v().getCallGraph().size());
-
+        	System.out.println("Callgraph has " + Scene.v().getCallGraph().size() + " edges.");
+        }
+        // End of yifei modification
+        
+        /**
+         * @author yifei
+         * print the size of callgraph
+         */
+        if (config.getCallgraphAlgorithm() != CallgraphAlgorithm.OnDemand) {
+        	logger.info("Callgraph has {} edges", Scene.v().getCallGraph().size());
+        	System.out.println("Callgraph has " + Scene.v().getCallGraph().size() + " edges.");
+        }
+        // End of yifei modification
+        
 		if (!config.isTaintAnalysisEnabled()) {
 			return;
 		}
@@ -342,6 +371,52 @@ public class Infoflow extends AbstractInfoflow {
 		logger.info("Source lookup done, found {} sources and {} sinks.", forwardProblem.getInitialSeeds().size(),
 				sinkCount);
 
+		/**
+		 * @author yifei
+		 * output sources and sinks
+		 */
+		List<String> sourcesInfo = new ArrayList<>();
+		for(Pair<SootMethod, Stmt> p : sources)
+			sourcesInfo.add("Source " + p.getO2().toString() + " in " + p.getO1().getSignature());
+		List<String> sinksInfo = new ArrayList<>();
+		for(Pair<SootMethod, Stmt> p : sinks)
+			sinksInfo.add("Sink " + p.getO2().toString() + " in " + p.getO1().getSignature());
+		Collections.sort(sourcesInfo);
+		Collections.sort(sinksInfo);
+		String sourceFileName = null;
+		String sinkFileName = null;
+		if(config.isInferenceReflectionModel()) {
+			sourceFileName = Option.v().getAppName() + "_refl_sources.txt";
+			sinkFileName = Option.v().getAppName() + "_refl_sinks.txt";
+		} else {
+			sourceFileName = Option.v().getAppName() + "_sources.txt";
+			sinkFileName = Option.v().getAppName() + "sinks.txt";
+		}
+		try(PrintWriter writer = new PrintWriter(sourceFileName)) {
+			for(String s : sourcesInfo)
+				writer.println(s);
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		try(PrintWriter writer = new PrintWriter(sinkFileName)) {
+			for(String s : sinksInfo)
+				writer.println(s);
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		// End of yifei modification
+		
+		/**
+		 * @author yifei
+		 * print the number of sources and sinks
+		 */
+		System.out.println("Source lookup done, found " + forwardProblem.getInitialSeeds().size() + 
+				" sources and " + sinkCount + " sinks.");
+		// End of yifei modification
+		
 		// Initialize the taint wrapper if we have one
 		if (taintWrapper != null)
 			taintWrapper.initialize(manager);
@@ -368,8 +443,15 @@ public class Infoflow extends AbstractInfoflow {
 			else
 				break;
 		}
-		if (executor.getActiveCount() != 0 || !executor.isTerminated())
+		/**
+		 * @author yifei
+		 * if executor did not terminate gracefully, terminate the analysis.
+		 */
+		if (executor.getActiveCount() != 0 || !executor.isTerminated()) {
 			logger.error("Executor did not terminate gracefully");
+			System.exit(0);
+		}
+		// End of yifei modification
 
 		// Print taint wrapper statistics
 		if (taintWrapper != null) {
@@ -377,6 +459,16 @@ public class Infoflow extends AbstractInfoflow {
 			logger.info("Taint wrapper misses: " + taintWrapper.getWrapperMisses());
 		}
 
+		/**
+		 * @author yifei
+		 * print the results of taint wrapper hits
+		 */
+		if (taintWrapper != null) {
+			System.out.println("Taint wrapper hits: " + taintWrapper.getWrapperHits());
+			System.out.println("Taint wrapper misses: " + taintWrapper.getWrapperMisses());
+		}
+		// End of yifei modification
+		
 		Set<AbstractionAtSink> res = forwardProblem.getResults();
 
 		// We need to prune access paths that are entailed by another one
@@ -561,12 +653,24 @@ public class Infoflow extends AbstractInfoflow {
 					if (getConfig().getLogSourcesAndSinks())
 						collectedSources.add(s);
 					logger.debug("Source found: {}", u);
+					/**
+					 * @author yifei
+					 * collect sources
+					 */
+					sources.add(new Pair<> (m, s));
+					// End of yifei modification
 				}
 				if (sourcesSinks.isSink(s, iCfg, null)) {
 					sinkCount++;
 					if (getConfig().getLogSourcesAndSinks())
 						collectedSinks.add(s);
 					logger.debug("Sink found: {}", u);
+					/**
+					 * @author yifei
+					 * collect sources
+					 */
+					sinks.add(new Pair<>(m, s));
+					// End of yifei modification
 				}
 			}
 
