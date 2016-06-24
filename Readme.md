@@ -1,3 +1,6 @@
+---------------------
+Fork from https://github.com/secure-software-engineering/soot-infoflow.git. Thanks for SOOT and FlowDroid team. 
+
 soot-infoflow
 =====================
 soot-infoflow is part of FlowDroid, a context-, flow-, field-, object-sensitive and lifecycle-aware static taint analysis tool for Android applications.
@@ -24,4 +27,3 @@ soot.jimple.infoflow.android.TestApps.Test class
 
 
 For more information visit http://sseblog.ec-spride.de/android/flowdroid/
-
