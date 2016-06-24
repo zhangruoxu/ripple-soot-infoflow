@@ -66,6 +66,7 @@ import soot.jimple.infoflow.solver.fastSolver.InfoflowSolver;
 import soot.jimple.infoflow.source.ISourceSinkManager;
 import soot.jimple.infoflow.util.SootMethodRepresentationParser;
 import soot.jimple.infoflow.util.SystemClassHandler;
+import soot.jimple.toolkits.callgraph.Edge;
 import soot.jimple.toolkits.callgraph.ReachableMethods;
 import soot.options.Options;
 import soot.toolkits.scalar.Pair;
@@ -243,16 +244,23 @@ public class Infoflow extends AbstractInfoflow {
         	System.out.println("Callgraph has " + Scene.v().getCallGraph().size() + " edges.");
         }
         // End of yifei modification
-        
         /**
          * @author yifei
-         * print the size of callgraph
+         * output call graph
          */
-        if (config.getCallgraphAlgorithm() != CallgraphAlgorithm.OnDemand) {
-        	logger.info("Callgraph has {} edges", Scene.v().getCallGraph().size());
-        	System.out.println("Callgraph has " + Scene.v().getCallGraph().size() + " edges.");
-        }
-        // End of yifei modification
+        String cgFileName = null;
+        if(config.isInferenceReflectionModel())
+        	cgFileName = Option.v().getAppName() + "_refl_cg.txt";
+        else
+        	cgFileName = Option.v().getAppName() + "_cg.txt";
+        try(PrintWriter writer = new PrintWriter(cgFileName)) {
+        	for(Edge e : Scene.v().getCallGraph())
+        		writer.println(e.toString());
+        } catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+        // end of yifei modification
         
 		if (!config.isTaintAnalysisEnabled()) {
 			return;
