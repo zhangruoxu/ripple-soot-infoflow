@@ -68,6 +68,7 @@ import soot.jimple.infoflow.util.SootMethodRepresentationParser;
 import soot.jimple.infoflow.util.SystemClassHandler;
 import soot.jimple.toolkits.callgraph.Edge;
 import soot.jimple.toolkits.callgraph.ReachableMethods;
+import soot.jimple.toolkits.callgraph.reflection.ReflectionOptions;
 import soot.options.Options;
 import soot.toolkits.scalar.Pair;
 /**
@@ -249,7 +250,7 @@ public class Infoflow extends AbstractInfoflow {
          * output call graph
          */
         String cgFileName = null;
-        if(Option.v().isInferenceReflectionModel())
+        if(ReflectionOptions.v().isInferenceReflectionModel())
         	cgFileName = Option.v().getAppName() + "_refl_cg.txt";
         else
         	cgFileName = Option.v().getAppName() + "_cg.txt";
@@ -393,7 +394,7 @@ public class Infoflow extends AbstractInfoflow {
 		Collections.sort(sinksInfo);
 		String sourceFileName = null;
 		String sinkFileName = null;
-		if(Option.v().isInferenceReflectionModel()) {
+		if(ReflectionOptions.v().isInferenceReflectionModel()) {
 			sourceFileName = Option.v().getAppName() + "_refl_sources.txt";
 			sinkFileName = Option.v().getAppName() + "_refl_sinks.txt";
 		} else {
