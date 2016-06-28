@@ -53,9 +53,9 @@ import soot.jimple.infoflow.data.pathBuilders.IPathBuilderFactory;
 import soot.jimple.infoflow.entryPointCreators.IEntryPointCreator;
 import soot.jimple.infoflow.handlers.ResultsAvailableHandler;
 import soot.jimple.infoflow.handlers.TaintPropagationHandler;
-import soot.jimple.infoflow.option.Option;
 import soot.jimple.infoflow.problems.BackwardsInfoflowProblem;
 import soot.jimple.infoflow.problems.InfoflowProblem;
+import soot.jimple.infoflow.reflection.Option;
 import soot.jimple.infoflow.results.InfoflowResults;
 import soot.jimple.infoflow.results.ResultSinkInfo;
 import soot.jimple.infoflow.results.ResultSourceInfo;
@@ -230,7 +230,7 @@ public class Infoflow extends AbstractInfoflow {
         // Perform constant propagation and remove dead code
         if (config.getCodeEliminationMode() != CodeEliminationMode.NoCodeElimination) {
 			long currentMillis = System.nanoTime();
-			eliminateDeadCode(sourcesSinks);
+			// eliminateDeadCode(sourcesSinks);
 			logger.info("Dead code elimination took " + (System.nanoTime() - currentMillis) / 1E9
 					+ " seconds");
         }
@@ -249,7 +249,7 @@ public class Infoflow extends AbstractInfoflow {
          * output call graph
          */
         String cgFileName = null;
-        if(config.isInferenceReflectionModel())
+        if(Option.v().isInferenceReflectionModel())
         	cgFileName = Option.v().getAppName() + "_refl_cg.txt";
         else
         	cgFileName = Option.v().getAppName() + "_cg.txt";
@@ -393,7 +393,7 @@ public class Infoflow extends AbstractInfoflow {
 		Collections.sort(sinksInfo);
 		String sourceFileName = null;
 		String sinkFileName = null;
-		if(config.isInferenceReflectionModel()) {
+		if(Option.v().isInferenceReflectionModel()) {
 			sourceFileName = Option.v().getAppName() + "_refl_sources.txt";
 			sinkFileName = Option.v().getAppName() + "_refl_sinks.txt";
 		} else {
@@ -661,6 +661,7 @@ public class Infoflow extends AbstractInfoflow {
 					if (getConfig().getLogSourcesAndSinks())
 						collectedSources.add(s);
 					logger.debug("Source found: {}", u);
+					System.out.println("Source found: " + u + ", in " + m.getSignature());
 					/**
 					 * @author yifei
 					 * collect sources
@@ -673,6 +674,7 @@ public class Infoflow extends AbstractInfoflow {
 					if (getConfig().getLogSourcesAndSinks())
 						collectedSinks.add(s);
 					logger.debug("Sink found: {}", u);
+					System.out.println("Sink found: " + u + ", in " + m.getSignature());
 					/**
 					 * @author yifei
 					 * collect sources

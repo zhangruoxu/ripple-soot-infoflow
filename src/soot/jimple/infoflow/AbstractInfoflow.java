@@ -27,6 +27,7 @@ import soot.jimple.infoflow.ipc.DefaultIPCManager;
 import soot.jimple.infoflow.ipc.IIPCManager;
 import soot.jimple.infoflow.nativ.DefaultNativeCallHandler;
 import soot.jimple.infoflow.nativ.INativeCallHandler;
+import soot.jimple.infoflow.reflection.Option;
 import soot.jimple.infoflow.source.DefaultSourceSinkManager;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
 import soot.options.Options;
@@ -287,7 +288,7 @@ public abstract class AbstractInfoflow implements IInfoflow {
 		 * @author yifei
 		 * configure inference reflection model of SOOT
 		 */
-		soot.jimple.toolkits.callgraph.reflection.android.Options.setInferenceReflectionModel(config.isInferenceReflectionModel());
+		soot.jimple.toolkits.callgraph.reflection.Options.setInferenceReflectionModel(Option.v().isInferenceReflectionModel());
 	}
 
 	private void setChaOptions() {

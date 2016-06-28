@@ -94,12 +94,6 @@ public class InfoflowConfiguration {
 	private boolean taintAnalysisEnabled = true;
 	
 	/**
-	 * @author yifei
-	 * option of reflection model
-	 */
-	private boolean inferenceReflectionModel;
-	// end of yifei modification
-	/**
 	 * Merges the given configuration options into this configuration object
 	 * @param config The configuration data to merge in
 	 */
@@ -553,19 +547,6 @@ public class InfoflowConfiguration {
 	public void setTaintAnalysisEnabled(boolean taintAnalysisEnabled) {
 		this.taintAnalysisEnabled = taintAnalysisEnabled;
 	}
-	
-	/**
-	 * @author yifei
-	 * Sets use inference reflection model
-	 */
-	public boolean isInferenceReflectionModel() {
-		return inferenceReflectionModel;
-	}
-	
-	public void setInferenceReflectionModel(boolean isInferenceReflectionModel) {
-		this.inferenceReflectionModel= isInferenceReflectionModel;
-	}
-	// End of yifei modification
 	
 	/**
 	 * Prints a summary of this data flow configuration
