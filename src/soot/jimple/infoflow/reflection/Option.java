@@ -1,6 +1,7 @@
 package soot.jimple.infoflow.reflection;
 
 public class Option {
+	private boolean isInferenceReflectionModel = false;
 	private String appName;
 	
 	private static Option options;
@@ -12,7 +13,15 @@ public class Option {
 			options = new Option();
 		return options;
 	}
-	
+		
+	public boolean isInferenceReflectionModel() {
+		return isInferenceReflectionModel;
+	}
+
+	public void setInferenceReflectionModel(boolean isInferenceReflectionModel) {
+		this.isInferenceReflectionModel = isInferenceReflectionModel;
+	}
+
 	public String getAppName() {
 		return appName;
 	}

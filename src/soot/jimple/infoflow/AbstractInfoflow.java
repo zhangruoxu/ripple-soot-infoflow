@@ -30,6 +30,7 @@ import soot.jimple.infoflow.nativ.INativeCallHandler;
 import soot.jimple.infoflow.reflection.Option;
 import soot.jimple.infoflow.source.DefaultSourceSinkManager;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
+import soot.jimple.toolkits.callgraph.reflection.ReflectionOptions;
 import soot.options.Options;
 
 /**
@@ -283,6 +284,13 @@ public abstract class AbstractInfoflow implements IInfoflow {
 			logger.error("Only phantom classes loaded, skipping analysis...");
 			return;
 		}
+		
+		/**
+		 * @author yifei
+		 * configure use reflection model
+		 */
+		ReflectionOptions.v().setInferenceReflectionModel(Option.v().isInferenceReflectionModel());
+		// End of yifei modification
 	}
 
 	private void setChaOptions() {
