@@ -242,7 +242,7 @@ public class Infoflow extends AbstractInfoflow {
          */
         if (config.getCallgraphAlgorithm() != CallgraphAlgorithm.OnDemand) {
         	logger.info("Callgraph has {} edges", Scene.v().getCallGraph().size());
-        	System.out.println("Callgraph has " + Scene.v().getCallGraph().size() + " edges.");
+        	System.out.println("# Callgraph has " + Scene.v().getCallGraph().size() + " edges.");
         }
         // End of yifei modification
         /**
@@ -399,7 +399,7 @@ public class Infoflow extends AbstractInfoflow {
 			sinkFileName = Option.v().getAppName() + "_refl_sinks.txt";
 		} else {
 			sourceFileName = Option.v().getAppName() + "_sources.txt";
-			sinkFileName = Option.v().getAppName() + "sinks.txt";
+			sinkFileName = Option.v().getAppName() + "_sinks.txt";
 		}
 		try(PrintWriter writer = new PrintWriter(sourceFileName)) {
 			for(String s : sourcesInfo)
@@ -422,7 +422,7 @@ public class Infoflow extends AbstractInfoflow {
 		 * @author yifei
 		 * print the number of sources and sinks
 		 */
-		System.out.println("Source lookup done, found " + forwardProblem.getInitialSeeds().size() + 
+		System.out.println("# Source lookup done, found " + forwardProblem.getInitialSeeds().size() + 
 				" sources and " + sinkCount + " sinks.");
 		// End of yifei modification
 		
