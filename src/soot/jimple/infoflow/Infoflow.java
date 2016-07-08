@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -231,7 +232,7 @@ public class Infoflow extends AbstractInfoflow {
         // Perform constant propagation and remove dead code
         if (config.getCodeEliminationMode() != CodeEliminationMode.NoCodeElimination) {
 			long currentMillis = System.nanoTime();
-			// eliminateDeadCode(sourcesSinks);
+			eliminateDeadCode(sourcesSinks);
 			logger.info("Dead code elimination took " + (System.nanoTime() - currentMillis) / 1E9
 					+ " seconds");
         }
@@ -384,6 +385,10 @@ public class Infoflow extends AbstractInfoflow {
 		 * @author yifei
 		 * output sources and sinks
 		 */
+		System.out.println("Seeds: ");
+		for(Map.Entry<Unit, Set<Abstraction>> e : forwardProblem.getInitialSeeds().entrySet()) {
+			System.out.println("# " + e.getKey() + ", " + e.getValue());
+		}
 		List<String> sourcesInfo = new ArrayList<>();
 		for(Pair<SootMethod, Stmt> p : sources)
 			sourcesInfo.add("Source " + p.getO2().toString() + " in " + p.getO1().getSignature());
