@@ -264,9 +264,14 @@ public class Infoflow extends AbstractInfoflow {
 		}
         // end of yifei modification
         
-		if (!config.isTaintAnalysisEnabled()) {
-			return;
-		}
+        /**
+         * @author yifei
+         * Move this part after finding sources and sinks
+         */
+//		if (!config.isTaintAnalysisEnabled()) {
+//			return;
+//		}
+		// end of yifei modification
 		logger.info("Starting Taint Analysis");
         iCfg = icfgFactory.buildBiDirICFG(config.getCallgraphAlgorithm(),
         		config.getEnableExceptionTracking());
@@ -430,6 +435,15 @@ public class Infoflow extends AbstractInfoflow {
 		System.out.println("# Source lookup done, found " + forwardProblem.getInitialSeeds().size() + 
 				" sources and " + sinkCount + " sinks.");
 		// End of yifei modification
+		
+		/**
+		 * @author yifei
+		 * if callgraph construction only, then stop execution
+		 */
+		if (!config.isTaintAnalysisEnabled()) {
+			return;
+		}
+		// end of yifei modification
 		
 		// Initialize the taint wrapper if we have one
 		if (taintWrapper != null)
