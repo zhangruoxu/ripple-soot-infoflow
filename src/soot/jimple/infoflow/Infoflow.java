@@ -256,8 +256,12 @@ public class Infoflow extends AbstractInfoflow {
         else
         	cgFileName = Option.v().getAppName() + "_cg.txt";
         try(PrintWriter writer = new PrintWriter(cgFileName)) {
+        	List<String> edges = new ArrayList<>();
         	for(Edge e : Scene.v().getCallGraph())
-        		writer.println(e.toString());
+        		edges.add(e.toString());
+        	Collections.sort(edges);
+        	for(String e : edges)
+        		writer.println(e);
         } catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
