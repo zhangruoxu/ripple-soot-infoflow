@@ -396,7 +396,7 @@ public class Infoflow extends AbstractInfoflow {
 		 */
 		System.out.println("Seeds: ");
 		for(Map.Entry<Unit, Set<Abstraction>> e : forwardProblem.getInitialSeeds().entrySet()) {
-			System.out.println("# " + e.getKey() + ", " + e.getValue());
+			System.out.println("# " + e.getKey());
 		}
 		List<String> sourcesInfo = new ArrayList<>();
 		for(Pair<SootMethod, Stmt> p : sources)
