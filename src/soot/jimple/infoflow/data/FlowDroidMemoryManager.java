@@ -202,22 +202,35 @@ public class FlowDroidMemoryManager implements IMemoryManager<Abstraction> {
 					doErase = true;
 				if (erasePathData == PathDataErasureMode.KeepOnlyContextData
 						&& curAbs.getCorrespondingCallSite() == null
-						&& curAbs.getCurrentStmt() != null
-						&& !curAbs.getCurrentStmt().containsInvokeExpr()
-						&& !(curAbs.getCurrentStmt() instanceof ReturnStmt)
-						&& !(curAbs.getCurrentStmt() instanceof ReturnVoidStmt)) {
-					doErase = true;
+						&& curAbs.getCurrentStmt() != null) {
+					// Lock the abstraction and check again. This is to make sure that no
+					// other thread has already erased the path data in the meantime and
+					// we access null objects.
+					synchronized (curAbs) {
+						if (curAbs.getCorrespondingCallSite() == null
+								&& curAbs.getCurrentStmt() != null
+								&& !curAbs.getCurrentStmt().containsInvokeExpr()
+								&& !(curAbs.getCurrentStmt() instanceof ReturnStmt)
+								&& !(curAbs.getCurrentStmt() instanceof ReturnVoidStmt)) {
+							doErase = true;
+						}
+					}
 				}
-				if (doErase) {
-					curAbs.setCurrentStmt(null);
-					curAbs.setCorrespondingCallSite(null);
+				synchronized (curAbs) {
+					if (doErase) {
+						curAbs.setCurrentStmt(null);
+						curAbs.setCorrespondingCallSite(null);
+					}
 				}
 				curAbs = curAbs.getPredecessor();
 			}
 		}
 		
-		Abstraction pred = obj.getPredecessor();
-		{
+		// If an intermediate statement does not change any taint state, skip it.
+		// Note that we should not do this when we're reconstructing paths or we might
+		// lose statements along the way.
+		if (erasePathData != PathDataErasureMode.EraseNothing) {
+			Abstraction pred = obj.getPredecessor();
 			Abstraction curAbs = pred;
 			while (curAbs != null && curAbs.getNeighbors() == null) {
 				Abstraction predPred = curAbs.getPredecessor();

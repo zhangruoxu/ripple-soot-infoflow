@@ -63,6 +63,7 @@ import soot.jimple.infoflow.results.ResultSourceInfo;
 import soot.jimple.infoflow.solver.IMemoryManager;
 import soot.jimple.infoflow.solver.cfg.BackwardsInfoflowCFG;
 import soot.jimple.infoflow.solver.cfg.IInfoflowCFG;
+import soot.jimple.infoflow.solver.fastSolver.BackwardsInfoflowSolver;
 import soot.jimple.infoflow.solver.fastSolver.InfoflowSolver;
 import soot.jimple.infoflow.source.ISourceSinkManager;
 import soot.jimple.infoflow.util.SootMethodRepresentationParser;
@@ -294,7 +295,7 @@ public class Infoflow extends AbstractInfoflow {
 
 		// Initialize the data flow manager
 		InfoflowManager manager = new InfoflowManager(config, null, iCfg, sourcesSinks,
-				taintWrapper);
+				taintWrapper, hierarchy);
 
 		BackwardsInfoflowProblem backProblem = null;
 		InfoflowManager backwardsManager = null;
@@ -303,9 +304,9 @@ public class Infoflow extends AbstractInfoflow {
 		switch (getConfig().getAliasingAlgorithm()) {
 			case FlowSensitive:
 				backwardsManager = new InfoflowManager(config, null,
-						new BackwardsInfoflowCFG(iCfg), sourcesSinks, taintWrapper);
+						new BackwardsInfoflowCFG(iCfg), sourcesSinks, taintWrapper, hierarchy);
 				backProblem = new BackwardsInfoflowProblem(backwardsManager);
-				backSolver = new InfoflowSolver(backProblem, executor);
+				backSolver = new BackwardsInfoflowSolver(backProblem, executor);
 				backSolver.setMemoryManager(memoryManager);
 				backSolver.setJumpPredecessors(!pathBuilderFactory.supportsPathReconstruction());
 //				backSolver.setEnableMergePointChecking(true);

@@ -106,9 +106,9 @@ public class InfoflowProblem extends AbstractInfoflowProblem {
 				
 				@Override
 				public Set<Abstraction> computeTargets(Abstraction d1, Abstraction source) {
-					if (manager.getConfig().getStopAfterFirstFlow() && !results.isEmpty())
+					if (1 <= manager.getConfig().getStopAfterFirstKFlows() && manager.getConfig().getStopAfterFirstKFlows() <= results.getResults().size())
 						return Collections.emptySet();
-												
+
 					// Notify the handler if we have one
 					if (taintPropagationHandler != null)
 						taintPropagationHandler.notifyFlowIn(stmt, source, interproceduralCFG(),
@@ -152,7 +152,7 @@ public class InfoflowProblem extends AbstractInfoflowProblem {
 				if (!source.getAccessPath().isEmpty()) {
 					// Special handling for array construction
 					if (leftValue instanceof ArrayRef && targetType != null)
-						targetType = buildArrayOrAddDimension(targetType);
+						targetType = TypeUtils.buildArrayOrAddDimension(targetType);
 					
 					// If this is an unrealizable typecast, drop the abstraction
 					if (rightValue instanceof CastExpr) {
@@ -446,7 +446,7 @@ public class InfoflowProblem extends AbstractInfoflowProblem {
 						
 						ByReferenceBoolean killAll = new ByReferenceBoolean();
 						Set<Abstraction> res = propagationRules.applyCallFlowFunction(d1,
-								source, stmt, killAll);
+								source, stmt, dest, killAll);
 						if (killAll.value)
 							return Collections.emptySet();
 						
@@ -619,7 +619,7 @@ public class InfoflowProblem extends AbstractInfoflowProblem {
 							// If this parameter is overwritten, we cannot propagate
 							// the "old" taint over. Return value propagation must
 							// always happen explicitly.
-							if (callSite instanceof DefinitionStmt) {
+							if (callSite instanceof DefinitionStmt && !isExceptionHandler(retSite)) {
 								DefinitionStmt defnStmt = (DefinitionStmt) callSite;
 								Value leftOp = defnStmt.getLeftOp();
 								originalCallArg = defnStmt.getInvokeExpr().getArg(i);
@@ -646,6 +646,10 @@ public class InfoflowProblem extends AbstractInfoflowProblem {
 										&& !source.getAccessPath().getCanHaveImmutableAliases())
 									continue;
 								
+								// If only the object itself, but no field is tainted, we can safely ignore it
+								if (!source.getAccessPath().getTaintSubFields())
+									continue;
+								
 								Abstraction abs = newSource.deriveNewAbstraction
 										(newSource.getAccessPath().copyWithNewValue(originalCallArg), (Stmt) exitStmt);
 								if (abs != null) {
@@ -669,27 +673,39 @@ public class InfoflowProblem extends AbstractInfoflowProblem {
 						
 						{
 						if (!callee.isStatic()) {
-							if (aliasing.mayAlias(thisLocal, sourceBase)) {
-								// check if it is not one of the params (then we have already fixed it)
-								if (!parameterAliases && manager.getTypeUtils().checkCast(
-										source.getAccessPath(), thisLocal.getType())) {
-									if (iCallStmt.getInvokeExpr() instanceof InstanceInvokeExpr) {
-										InstanceInvokeExpr iIExpr = (InstanceInvokeExpr) iCallStmt.getInvokeExpr();
-										Abstraction abs = newSource.deriveNewAbstraction
-												(newSource.getAccessPath().copyWithNewValue(iIExpr.getBase()), (Stmt) exitStmt);										
-										if (abs != null) {
-											res.add(abs);
-										
-											// Aliases of implicitly tainted variables must be mapped back
-											// into the caller's context on return when we leave the last
-											// implicitly-called method
-											if ((abs.isImplicit()
-													&& Aliasing.canHaveAliases(iCallStmt, iIExpr.getBase(), abs)
-													&& !callerD1sConditional) || aliasingStrategy.requiresAnalysisOnReturn())
-												for (Abstraction d1 : callerD1s)
-													aliasing.computeAliases(d1, iCallStmt, iIExpr.getBase(), res,
-															interproceduralCFG().getMethodOf(callSite), abs);
-										}
+							// If this parameter is overwritten, we cannot propagate
+							// the "old" taint over. Return value propagation must
+							// always happen explicitly.
+							boolean thisAliases = false;
+							if (callSite instanceof DefinitionStmt && !isExceptionHandler(retSite)) {
+								DefinitionStmt defnStmt = (DefinitionStmt) callSite;
+								Value leftOp = defnStmt.getLeftOp();
+								if (thisLocal == leftOp)
+									thisAliases = true;
+							}
+							
+							// check if it is not one of the params (then we have already fixed it)
+							if (!parameterAliases && !thisAliases
+									&& source.getAccessPath().getTaintSubFields()
+									&& iCallStmt.getInvokeExpr() instanceof InstanceInvokeExpr
+									&& aliasing.mayAlias(thisLocal, sourceBase)) {
+								// Type check
+								if (manager.getTypeUtils().checkCast(source.getAccessPath(), thisLocal.getType())) {
+									InstanceInvokeExpr iIExpr = (InstanceInvokeExpr) iCallStmt.getInvokeExpr();
+									Abstraction abs = newSource.deriveNewAbstraction
+											(newSource.getAccessPath().copyWithNewValue(iIExpr.getBase()), (Stmt) exitStmt);										
+									if (abs != null) {
+										res.add(abs);
+									
+										// Aliases of implicitly tainted variables must be mapped back
+										// into the caller's context on return when we leave the last
+										// implicitly-called method
+										if ((abs.isImplicit()
+												&& Aliasing.canHaveAliases(iCallStmt, iIExpr.getBase(), abs)
+												&& !callerD1sConditional) || aliasingStrategy.requiresAnalysisOnReturn())
+											for (Abstraction d1 : callerD1s)
+												aliasing.computeAliases(d1, iCallStmt, iIExpr.getBase(), res,
+														interproceduralCFG().getMethodOf(callSite), abs);
 									}
 								}
 							}
@@ -899,7 +915,7 @@ public class InfoflowProblem extends AbstractInfoflowProblem {
 				
 				// Android executor methods are handled specially. getSubSignature()
 				// is slow, so we try to avoid it whenever we can
-				final boolean isExecutorExecute = isExecutorExecute(ie, callee);
+				final boolean isExecutorExecute = interproceduralCFG().isExecutorExecute(ie, callee);
 				
 				Set<AccessPath> res = null;
 				
